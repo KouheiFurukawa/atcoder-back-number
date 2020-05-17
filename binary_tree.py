@@ -1,74 +1,112 @@
+import queue
+
 class Node:
-    def __init__(self, label):
-        self.label = label
+    def __init__(self, data):
+        self.data = data
         self.left = None
         self.right = None
+        self.parent = None
 
+class NewNode(Node):
+    def __init__(self, data):
+        super().__init__(data)
+        self.d = None
+        self.visited = False
 
 class BST:
-    def __init__(self, number_list):  # コンストラクタ
-        self.root = None  # ルートノード初期化
-        for node in number_list:  # 数値を持つ配列から二分木を生成
-            self.insert(node)  # 挿入メソッドを使ってノードを挿入する
+    def __init__(self, number_list):
+        self.root = None
+        for node in number_list:
+            self.insert(node)
 
     def insert(self, data):
         n = self.root
         if n is None:
-            self.root = Node(data)
+            self.root = NewNode(data)
             return
         else:
             while True:
-                entry = n.label
+                entry = n.data
                 if data < entry:
                     if n.left is None:
-                        n.left = Node(data)
+                        n.left = NewNode(data)
+                        n.left.parent = n
                         return
-                    n = n.left
+                    else:
+                        n = n.left
                 elif data > entry:
                     if n.right is None:
-                        n.right = Node(data)
+                        n.right = NewNode(data)
+                        n.right.parent = n
                         return
-                    n = n.right
+                    else:
+                        n = n.right
                 else:
-                    n.label = data
+                    n.data = data
                     return
 
-    def search_bool(self, search):
+    def search(self, query):
         n = self.root
-        if n is None:
-            return None
+        while n is not None:
+            entry = n.data
+            if query < entry:
+                n = n.left
+            elif query > entry:
+                n = n.right
+            else:
+                return n
+        return False
+
+    def successor(self, x):
+        xr = x.right
+        while xr.left is not None:
+            xr = xr.left
+        return xr
+
+    def delete_node(self, data):
+        z = self.search(data)
+        if z.left is None or z.right is None:
+            y = z
+        else: y = self.successor(z)
+
+        if y.left is not None:
+            x = y.left
         else:
-            lst = [n]
-            while len(lst) > 0:
-                node = lst.pop()
-                if node.label == search:
-                    return True
-                if node.right is not None:
-                    lst.append(node.right)
-                if node.left is not None:
-                    lst.append(node.left)
-            return False
+            x = y.right
 
+        if x is not None:
+            x.parent = y.parent
 
-def preorder(node):
-    if node is None:
-        return
-    print(node.label)
-    preorder(node.left)
-    preorder(node.right)
+        if y.parent is None:
+            self.root = x
+        else:
+            if y == y.parent.left:
+                y.parent.left = x
+            else:
+                y.parent.right = x
+        if y != z:
+            z.data = y.data
 
+    def inorder(self, n):
+        if n is None:
+            return
+        self.inorder(n.left)
+        print(n.data)
+        self.inorder(n.right)
 
-def inorder(node):
-    if node is None:
-        return
-    inorder(node.left)
-    print(node.label)
-    inorder(node.right)
+tree = BST([6, 3, 7, 1, 4, 8])
+q = queue.Queue()
+tree.root.d = 0
+q.put(tree.root)
+distance = 0
 
-
-def postorder(node):
-    if node is None:
-        return
-    postorder(node.left)
-    postorder(node.right)
-    print(node.label)
+while not q.empty():
+    temp = q.get()
+    print(temp.data, temp.d)
+    if temp.left is not None:
+        temp.left.d = temp.d + 1
+        q.put(temp.left)
+    if temp.right is not None:
+        temp.right.d = temp.d + 1
+        q.put(temp.right)
+# tree.inorder(tree.root)
